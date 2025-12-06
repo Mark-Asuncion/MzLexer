@@ -1,26 +1,18 @@
 #include <iostream>
-#include <fstream>
 #include <sstream>
 #include "Lexer.hpp"
 
 int main ()
 {
-    std::ifstream file;
-    file.open("./sample.txt");
-    if (!file.is_open())
-    {
-        std::cerr << "Error: File does not exist\n";
-        return 1;
-    }
-
     std::stringstream source_stream;
-    while (!file.eof())
+    while (!std::cin.eof())
     {
         std::string source;
-        std::getline(file, source);
-        source_stream << source;
+        std::getline(std::cin, source);
+        source_stream << source << '\n';
     }
 
+    std::cout << source_stream.str() << '\n';
     Lexer lexer(source_stream.str());
 
     return 0;

@@ -18,7 +18,7 @@ public:
     uint row = 0;
     uint col = 0;
 
-    Lexer(const std::string& s) : source(s) { }
+    Lexer(const std::string& s);
 
     bool next_token();
     bool next_token(TokenType expect_token);

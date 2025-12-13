@@ -1,6 +1,8 @@
 #ifndef __TOKENHPP__
 #define __TOKENHPP__
 
+namespace MzLexer
+{
 enum TokenType
 {
     Null = 0,
@@ -41,5 +43,6 @@ enum TokenType
     FString,
     String
 };
+}
 
 #endif // __TOKENHPP__

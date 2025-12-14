@@ -30,9 +30,10 @@ public:
     uint row = 0;
     uint col = 0;
 
-    uint token_row = 0;
-    uint token_col = 0;
-    uint token_end = 0;
+    uint token_start_row = 0;
+    uint token_start_col = 0;
+    uint token_end_row   = 0;
+    uint token_end_col   = 0;
 
     bool is_error = false;
 
@@ -47,10 +48,14 @@ private:
 
     bool is_alpha();
     bool is_number();
-    char peek(uint offset = 0);
+    bool is_whitespace(char16_t);
+    char16_t peek(uint offset = 0);
     void advance(uint amount = 1);
     void skip_whitespace();
     inline void set_error();
+
+    void handle_number();
+    void handle_string();
 };
 }
 #endif // __LEXERHPP__

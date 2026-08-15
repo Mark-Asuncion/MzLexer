@@ -16,6 +16,7 @@ std::string u16_to_string(const std::u16string&);
 
 typedef std::basic_stringstream<char16_t> u16stringstream;
 typedef std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> U16Converter;
+typedef std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> WideConverter;
 
 class Lexer
 {
@@ -40,7 +41,7 @@ public:
     Lexer(const std::string& s);
 
     bool next_token();
-    void print_current_token(std::ostream& fd);
+    void print_current_token(std::wostream& fd);
     bool is_eof();
     std::string get_error();
 private:
@@ -49,6 +50,8 @@ private:
     bool is_alpha();
     bool is_number();
     bool is_whitespace(char16_t);
+    bool is_token_string();
+
     char16_t peek(uint offset = 0);
     void advance(uint amount = 1);
     void skip_whitespace();

@@ -19,7 +19,7 @@ int main () {
     {
         lexer.next_token();
         if (lexer.is_eof() || lexer.is_error) break;
-        lexer.print_current_token(std::cout);
+        lexer.print_current_token(std::wcout);
     }
     if (lexer.is_error)
     {

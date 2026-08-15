@@ -47,12 +47,14 @@ enum TokenType
 
     Comment,
     Dot,
+    Range,
     Arrow,
     GreaterThan,
-    LessThan
+    LessThan,
+    SpecialChar
 };
 
-std::string tokentype_to_string(TokenType);
+std::u16string tokentype_to_string(TokenType type);
 }
 
 #endif // __TOKENHPP__

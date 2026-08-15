@@ -1,6 +1,5 @@
 #include "Lexer.hpp"
 #include "Token.hpp"
-#include <algorithm>
 #include <cassert>
 #include <regex>
 #include <sstream>
@@ -235,7 +234,18 @@ void MzLexer::Lexer::next_token()
             handle_string();
             break;
         case '\'':
-            if (peek(1) == '\'')
+            if (peek() == '\\' && peek(2) == '\'')
+            {
+                token = TokenType::Char;
+                token_start_row = row;
+                token_start_col = col;
+                advance(3);
+                lexeme = source.substr(ptr-3, 4);
+                token_start_row = row;
+                token_start_col = col;
+                advance();
+            }
+            else if (peek(1) == '\'')
             {
                 token = TokenType::Char;
                 token_start_row = row;

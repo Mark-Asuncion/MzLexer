@@ -1,6 +1,8 @@
 #include "Lexer.hpp"
 #include "Token.hpp"
+#include <algorithm>
 #include <cassert>
+#include <regex>
 #include <sstream>
 #include <string>
 #include <iostream>
@@ -259,7 +261,14 @@ void MzLexer::Lexer::next_token()
             }
             else if (is_alpha())
             {
-                handle_identifier();
+                if ((source[ptr] == 'r' || source[ptr] == 'R') && peek() == '"')
+                {
+                    handle_rawstring();
+                }
+                else
+                {
+                    handle_identifier();
+                }
                 break;
             }
             else
@@ -337,6 +346,25 @@ void MzLexer::Lexer::handle_string()
     token_start_col = col;
 }
 
+void MzLexer::Lexer::handle_rawstring()
+{
+    char st = peek();
+    uint start_ptr = ptr;
+    token_start_row = row;
+    token_start_col = col;
+    token = TokenType::RawString;
+    advance(2);
+    while (!is_eof() && source[ptr] != st)
+    {
+        advance();
+    }
+    advance();
+
+    lexeme = source.substr(start_ptr, ptr-start_ptr);
+    token_start_row = row;
+    token_start_col = col;
+}
+
 void MzLexer::Lexer::handle_comment()
 {
     uint start_ptr = ptr;
@@ -361,7 +389,9 @@ void MzLexer::Lexer::print_current_token(std::ostream& fd)
     int w = 10;
     std::stringstream ss;
 
-    ss << tokentype_to_string(token) << "(" << lexeme << ")";
+    std::string _lex(lexeme);
+    _lex = std::regex_replace(_lex, std::regex("\n"), "\\n");
+    ss << tokentype_to_string(token) << "(" << _lex << ")";
 
     fd <<  "TokenType: " << std::setw(w*2) << std::left << ss.str() <<
         " Token Start Row: " << std::setw(w) << std::left << token_start_row <<
@@ -427,9 +457,7 @@ std::string MzLexer::tokentype_to_string(TokenType type)
         case Identifier:            return "Identifier";
         case Spread:                return "Spread";
         case Char:                  return "Char";
-        case MultiLineString:       return "MultiLineString";
-        case RString:               return "RString";
-        case FString:               return "FString";
+        case RawString:             return "RawString";
         case String:                return "String";
         case Comment:               return "Comment";
         case Dot:                   return "Dot";

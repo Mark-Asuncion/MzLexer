@@ -49,6 +49,7 @@ private:
 
     void handle_number();
     void handle_string();
+    void handle_rawstring();
     void handle_identifier();
     void handle_comment();
 };

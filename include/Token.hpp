@@ -38,15 +38,13 @@ enum TokenType
     Decimal,
 
     Identifier,
-    Spread,
     Char,
-    MultiLineString,
-    RString,
-    FString,
+    RawString,
     String,
 
     Comment,
     Dot,
+    Spread,
     Range,
     Arrow,
     GreaterThan,

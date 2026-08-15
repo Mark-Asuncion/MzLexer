@@ -6,7 +6,8 @@ SOURCES=$(wildcard ./src/*.cpp)
 LIB=$(wildcard ./lib/*.cpp)
 TARGET=mzlex
 TARGETLIB=libmzlex
-PATHTARGETLIB=$(BUILD_DIR)/lib/libmzlex.a
+PATHTARGETLIB=$(BUILD_DIR)/lib/$(TARGETLIB).a
+PATHTARGETLIBDEBUG=$(BUILD_DIR)/lib/debug/$(TARGETLIB).a
 
 .PHONY: compile_flags
 
@@ -26,6 +27,11 @@ $(TARGET): $(SOURCES) $(TARGETLIB)
 	@mkdir -p $(BUILD_DIR)
 	$(CC) $(CCFLAGS) $(SOURCES) $(PATHTARGETLIB) -o $(BUILD_DIR)/$(TARGET) $(LDFLAGS)
 
-debug: $(SOURCES) $(TARGETLIB)
+debug_$(TARGETLIB): $(LIB)
+	@mkdir -p $(BUILD_DIR)/lib/debug
+	$(CC) -g $(CCFLAGS) -c $(LIB) -o $(BUILD_DIR)/lib/debug/$(TARGETLIB).o
+	@ar rcvs $(BUILD_DIR)/lib/debug/$(TARGETLIB).a $(BUILD_DIR)/lib/debug/$(TARGETLIB).o
+
+debug: $(SOURCES) debug_$(TARGETLIB)
 	@mkdir -p $(BUILD_DIR)
-	$(CC) -g $(CCFLAGS) $(SOURCES) $(PATHTARGETLIB) -o $(BUILD_DIR)/$(TARGET) $(LDFLAGS)
+	$(CC) -g $(CCFLAGS) $(SOURCES) $(PATHTARGETLIBDEBUG) -o $(BUILD_DIR)/$(TARGET) $(LDFLAGS)

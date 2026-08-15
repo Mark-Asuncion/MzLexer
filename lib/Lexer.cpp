@@ -8,16 +8,15 @@
 
 MzLexer::Lexer::Lexer(const std::string& s)
 {
-    MzLexer::U16Converter convert;
-    source = convert.from_bytes(s.c_str());
+    source = s;
     length = source.length();
     row = 1;
     col = 1;
 }
 
-char16_t MzLexer::Lexer::peek(uint offset)
+char MzLexer::Lexer::peek(uint offset)
 {
-    if (ptr+1+offset >= length) return u'\0';
+    if (ptr+1+offset >= length) return '\0';
     return source[ptr+1+offset];
 }
 
@@ -29,16 +28,16 @@ void MzLexer::Lexer::advance(uint amount)
 }
 
 
-bool MzLexer::Lexer::is_whitespace(char16_t c)
+bool MzLexer::Lexer::is_whitespace(char c)
 {
-    return c == u'\n' || c == u' ' || c == u'\t' || c == '\r';
+    return c == '\n' || c == ' ' || c == '\t' || c == '\r';
 }
 
 void MzLexer::Lexer::skip_whitespace()
 {
     while (!is_eof())
     {
-        if (source[ptr] == u'\n')
+        if (source[ptr] == '\n')
         {
             row++;
             col=0;
@@ -62,7 +61,7 @@ inline void MzLexer::Lexer::set_error()
     uint line_end = 0;
 
     while (rev_ptr >= 0) {
-        if (source[rev_ptr] == u'\n')
+        if (source[rev_ptr] == '\n')
         {
             line_start = rev_ptr + 1;
             break;
@@ -71,7 +70,7 @@ inline void MzLexer::Lexer::set_error()
     }
     while (forw_ptr < (int)length)
     {
-        if (source[forw_ptr] == u'\n')
+        if (source[forw_ptr] == '\n')
         {
             line_end = forw_ptr;
             break;
@@ -82,10 +81,10 @@ inline void MzLexer::Lexer::set_error()
     if (line_end == 0)
         line_end = length;
 
-    u16stringstream ss;
-    ss << u"Unknown Token\n";
-    ss << source.substr(line_start, line_end - line_start) << u'\n';
-    ss << std::u16string(col-1, ' ') << u"|\n";
+    std::stringstream ss;
+    ss << "Unknown Token\n";
+    ss << source.substr(line_start, line_end - line_start) << '\n';
+    ss << std::string(col-1, ' ') << "|\n";
 
     error = ss.str();
 
@@ -116,95 +115,95 @@ bool MzLexer::Lexer::next_token()
     if (is_eof()) return false;
     switch (source[ptr])
     {
-        case u'+':
+        case '+':
             SET_ONE_CHAR(TokenType::Plus);
             break;
-        case u'-':
-           if (peek() == u'>')
+        case '-':
+           if (peek() == '>')
            {
-               SET_TWO_CHAR(TokenType::Arrow, u"->");
+               SET_TWO_CHAR(TokenType::Arrow, "->");
            }
            else
            {
                SET_ONE_CHAR(TokenType::Minus);
            }
             break;
-        case u'/':
-            if (peek() == u'/')
+        case '/':
+            if (peek() == '/')
             {
-                SET_TWO_CHAR(TokenType::Comment, u"//");
+                SET_TWO_CHAR(TokenType::Comment, "//");
             }
             else {
                 SET_ONE_CHAR(TokenType::Divide);
             }
             break;
-        case u'*':
+        case '*':
             SET_ONE_CHAR(TokenType::Multiply);
             break;
-        case u'=':
+        case '=':
             SET_ONE_CHAR(TokenType::Equal);
             break;
-        case u'>':
+        case '>':
             SET_ONE_CHAR(TokenType::GreaterThan);
             break;
-        case u'<':
+        case '<':
             SET_ONE_CHAR(TokenType::LessThan);
             break;
-        case u'|':
-            if (peek() == u'|')
+        case '|':
+            if (peek() == '|')
             {
-                SET_TWO_CHAR(TokenType::LogicOr, u"||");
+                SET_TWO_CHAR(TokenType::LogicOr, "||");
             }
             else
             {
                 SET_ONE_CHAR(TokenType::BitwiseOr);
             }
             break;
-        case u'&':
-            if (peek() == u'&')
+        case '&':
+            if (peek() == '&')
             {
-                SET_TWO_CHAR(TokenType::LogicAnd, u"&&");
+                SET_TWO_CHAR(TokenType::LogicAnd, "&&");
             }
             else
             {
                 SET_ONE_CHAR(TokenType::BitwiseAnd);
             }
             break;
-        case u'^':
+        case '^':
             SET_ONE_CHAR(TokenType::BitwiseExOr);
             break;
-        case u'~':
+        case '~':
             SET_ONE_CHAR(TokenType::BitwiseNot);
             break;
-        case u'!':
+        case '!':
             SET_ONE_CHAR(TokenType::LogicNot);
             break;
-        case u'{':
+        case '{':
             SET_ONE_CHAR(TokenType::GrCurlyStart);
             break;
-        case u'}':
+        case '}':
             SET_ONE_CHAR(TokenType::GrCurlyEnd);
             break;
-        case u'(':
+        case '(':
             SET_ONE_CHAR(TokenType::GrParenthesisStart);
             break;
-        case u')':
+        case ')':
             SET_ONE_CHAR(TokenType::GrParenthesisEnd);
             break;
-        case u'[':
+        case '[':
             SET_ONE_CHAR(TokenType::GrSquareBracketStart);
             break;
-        case u']':
+        case ']':
             SET_ONE_CHAR(TokenType::GrSquareBracketEnd);
             break;
-        case u';':
+        case ';':
             SET_ONE_CHAR(TokenType::StatementEnd);
             break;
-        case u'.':
-            if (peek() == u'.' && peek(1) == u'.')
+        case '.':
+            if (peek() == '.' && peek(1) == '.')
             {
                 token = TokenType::Spread;
-                lexeme = u"...";
+                lexeme = "...";
                 token_start_row = row;
                 token_start_col = col;
                 advance(2);
@@ -212,9 +211,9 @@ bool MzLexer::Lexer::next_token()
                 token_end_col = col;
                 advance();
             }
-            else if (peek() == u'.')
+            else if (peek() == '.')
             {
-                SET_TWO_CHAR(TokenType::Range, u"..");
+                SET_TWO_CHAR(TokenType::Range, "..");
             }
             else
             {
@@ -227,7 +226,7 @@ bool MzLexer::Lexer::next_token()
                 handle_number();
                 break;
             }
-            else if (is_alpha() || source[ptr] == u'"' || source[ptr] == u'\'') {
+            else if (is_alpha() || source[ptr] == '"' || source[ptr] == '\'') {
                 assert(false && "Handle alpha");
                 return true;
                 break;
@@ -253,7 +252,7 @@ void MzLexer::Lexer::handle_number() {
     advance();
 
     while(!is_eof() && is_number()) {
-        if (peek() == u'.') {
+        if (peek() == '.') {
             token = TokenType::Decimal;
             advance();
         }
@@ -273,35 +272,24 @@ bool MzLexer::Lexer::is_token_string() {
         token == TokenType::RString || token == TokenType::FString;
 }
 
-void MzLexer::Lexer::print_current_token(std::wostream& fd)
+void MzLexer::Lexer::print_current_token(std::ostream& fd)
 {
     int w = 10;
-    u16stringstream ss;
+    std::stringstream ss;
 
-    std::u16string gr = u"";
+    std::string gr = "";
     if (is_token_string())
     {
-        gr = u"\"";
+        gr = "\"";
     }
     else if (token == TokenType::Char)
     {
-        gr = u"'";
+        gr = "'";
     }
 
-    ss << tokentype_to_string(token) << u"(" << gr << lexeme << gr << u")";
-    std::wstring wst;
-#ifdef _WIN32
-    std::u16string utf16 = ss.str();
-    wst.reserve(utf16.size());
-    std::copy(utf16.begin(), utf16.end(), std::back_inserter(wst));
-#else
-    U16Converter u16conv;
-    std::string utf8 = u16conv.to_bytes(ss.str());
-    WideConverter wconv;
-    wst = wconv.from_bytes(utf8);
-#endif
+    ss << tokentype_to_string(token) << "(" << gr << lexeme << gr << ")";
 
-    fd <<  "TokenType: " << std::setw(w*2) << std::left << wst <<
+    fd <<  "TokenType: " << std::setw(w*2) << std::left << ss.str() <<
         " Token Start Row: " << std::setw(w) << std::left << token_start_row <<
         " Token Start Col: " << std::setw(w) << std::left << token_start_col <<
         " Token End Row: " << std::setw(w) << std::left << token_end_row <<
@@ -312,76 +300,70 @@ void MzLexer::Lexer::print_current_token(std::wostream& fd)
 
 bool MzLexer::Lexer::is_eof()
 {
-    return ptr >= length || source[ptr] == u'\0';
+    return ptr >= length || source[ptr] == '\0';
 }
 
 bool MzLexer::Lexer::is_alpha()
 {
-    uint a = u'a';
-    uint z = u'z';
-    uint A = u'A';
-    uint Z = u'Z';
+    uint a = 'a';
+    uint z = 'z';
+    uint A = 'A';
+    uint Z = 'Z';
     uint cur_char = source[ptr];
     return (cur_char >= a && cur_char <= z) || (cur_char >= A && cur_char <= Z);
 }
 
 bool MzLexer::Lexer::is_number()
 {
-    char16_t c = source[ptr];
-    return c >= u'0' && c <= u'9';
+    char c = source[ptr];
+    return c >= '0' && c <= '9';
 }
 
 std::string MzLexer::Lexer::get_error()
 {
-    return u16_to_string(error);
+    return error;
 }
 
-std::string MzLexer::u16_to_string(const std::u16string& v)
-{
-    MzLexer::U16Converter convert;
-    return convert.to_bytes(v);
-}
-
-std::u16string MzLexer::tokentype_to_string(TokenType type)
+std::string MzLexer::tokentype_to_string(TokenType type)
 {
     switch (type)
     {
-        case Null:                  return u"Null";
-        case Plus:                  return u"Plus";
-        case Minus:                 return u"Minus";
-        case Divide:                return u"Divide";
-        case Multiply:              return u"Multiply";
-        case Equal:                 return u"Equal";
-        case BitwiseOr:             return u"BitwiseOr";
-        case BitwiseExOr:           return u"BitwiseExOr";
-        case BitwiseAnd:            return u"BitwiseAnd";
-        case BitwiseNot:            return u"BitwiseNot";
-        case LogicOr:               return u"LogicOr";
-        case LogicAnd:              return u"LogicAnd";
-        case LogicNot:              return u"LogicNot";
-        case GrCurlyStart:          return u"GrCurlyStart";
-        case GrCurlyEnd:            return u"GrCurlyEnd";
-        case GrParenthesisStart:    return u"GrParenthesisStart";
-        case GrParenthesisEnd:      return u"GrParenthesisEnd";
-        case GrSquareBracketStart:  return u"GrSquareBracketStart";
-        case GrSquareBracketEnd:    return u"GrSquareBracketEnd";
-        case StatementEnd:          return u"StatementEnd";
-        case WholeNumber:           return u"WholeNumber";
-        case Decimal:               return u"Decimal";
-        case Identifier:            return u"Identifier";
-        case Spread:                return u"Spread";
-        case Char:                  return u"Char";
-        case MultiLineString:       return u"MultiLineString";
-        case RString:               return u"RString";
-        case FString:               return u"FString";
-        case String:                return u"String";
-        case Comment:               return u"Comment";
-        case Dot:                   return u"Dot";
-        case Range:                 return u"Range";
-        case Arrow:                 return u"Arrow";
-        case GreaterThan:           return u"GreaterThan";
-        case LessThan:              return u"LessThan";
-        case SpecialChar:           return u"SpecialChar";
-        default:                    return u"";
+        case Null:                  return "Null";
+        case Plus:                  return "Plus";
+        case Minus:                 return "Minus";
+        case Divide:                return "Divide";
+        case Multiply:              return "Multiply";
+        case Equal:                 return "Equal";
+        case BitwiseOr:             return "BitwiseOr";
+        case BitwiseExOr:           return "BitwiseExOr";
+        case BitwiseAnd:            return "BitwiseAnd";
+        case BitwiseNot:            return "BitwiseNot";
+        case LogicOr:               return "LogicOr";
+        case LogicAnd:              return "LogicAnd";
+        case LogicNot:              return "LogicNot";
+        case GrCurlyStart:          return "GrCurlyStart";
+        case GrCurlyEnd:            return "GrCurlyEnd";
+        case GrParenthesisStart:    return "GrParenthesisStart";
+        case GrParenthesisEnd:      return "GrParenthesisEnd";
+        case GrSquareBracketStart:  return "GrSquareBracketStart";
+        case GrSquareBracketEnd:    return "GrSquareBracketEnd";
+        case StatementEnd:          return "StatementEnd";
+        case WholeNumber:           return "WholeNumber";
+        case Decimal:               return "Decimal";
+        case Identifier:            return "Identifier";
+        case Spread:                return "Spread";
+        case Char:                  return "Char";
+        case MultiLineString:       return "MultiLineString";
+        case RString:               return "RString";
+        case FString:               return "FString";
+        case String:                return "String";
+        case Comment:               return "Comment";
+        case Dot:                   return "Dot";
+        case Range:                 return "Range";
+        case Arrow:                 return "Arrow";
+        case GreaterThan:           return "GreaterThan";
+        case LessThan:              return "LessThan";
+        case SpecialChar:           return "SpecialChar";
+        default:                    return "";
     }
 }

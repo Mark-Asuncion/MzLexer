@@ -3,29 +3,20 @@
 
 #include <cstdio>
 #include <ostream>
-#include <sstream>
 #include <string>
 #include "Token.hpp"
-#include <codecvt>
-#include <locale>
 
 namespace MzLexer
 {
 
-std::string u16_to_string(const std::u16string&);
-
-typedef std::basic_stringstream<char16_t> u16stringstream;
-typedef std::wstring_convert<std::codecvt_utf8_utf16<char16_t>,char16_t> U16Converter;
-typedef std::wstring_convert<std::codecvt_utf8<wchar_t>, wchar_t> WideConverter;
-
 class Lexer
 {
 public:
-    std::u16string source;
+    std::string source;
     uint ptr = 0;
 
     TokenType token;
-    std::u16string lexeme;
+    std::string lexeme;
 
     uint length = 0;
     uint row = 0;
@@ -41,18 +32,18 @@ public:
     Lexer(const std::string& s);
 
     bool next_token();
-    void print_current_token(std::wostream& fd);
+    void print_current_token(std::ostream& fd);
     bool is_eof();
     std::string get_error();
 private:
-    std::u16string error;
+    std::string error;
 
     bool is_alpha();
     bool is_number();
-    bool is_whitespace(char16_t);
+    bool is_whitespace(char);
     bool is_token_string();
 
-    char16_t peek(uint offset = 0);
+    char peek(uint offset = 0);
     void advance(uint amount = 1);
     void skip_whitespace();
     inline void set_error();

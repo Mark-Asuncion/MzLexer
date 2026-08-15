@@ -54,7 +54,7 @@ enum TokenType
     SpecialChar
 };
 
-std::u16string tokentype_to_string(TokenType type);
+std::string tokentype_to_string(TokenType type);
 }
 
 #endif // __TOKENHPP__

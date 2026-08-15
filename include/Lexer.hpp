@@ -31,7 +31,7 @@ public:
 
     Lexer(const std::string& s);
 
-    bool next_token();
+    void next_token();
     void print_current_token(std::ostream& fd);
     bool is_eof();
     std::string get_error();
@@ -50,6 +50,7 @@ private:
 
     void handle_number();
     void handle_string();
+    void handle_identifier();
 };
 }
 #endif // __LEXERHPP__

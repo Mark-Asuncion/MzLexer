@@ -61,12 +61,12 @@ inline void MzLexer::Lexer::set_error()
     uint line_end = 0;
 
     while (rev_ptr >= 0) {
+        rev_ptr--;
         if (source[rev_ptr] == '\n')
         {
             line_start = rev_ptr + 1;
             break;
         }
-        rev_ptr--;
     }
     while (forw_ptr < (int)length)
     {
@@ -84,13 +84,13 @@ inline void MzLexer::Lexer::set_error()
     std::stringstream ss;
     ss << "Unknown Token\n";
     ss << source.substr(line_start, line_end - line_start) << '\n';
-    ss << std::string(col-1, ' ') << "|\n";
+    ss << std::string(col-1, ' ') << "^\n";
 
     error = ss.str();
 
 }
 
-bool MzLexer::Lexer::next_token()
+void MzLexer::Lexer::next_token()
 {
 #define SET_ONE_CHAR(type)          \
     token = type;                   \
@@ -112,7 +112,16 @@ bool MzLexer::Lexer::next_token()
     advance();
 
     skip_whitespace();
-    if (is_eof()) return false;
+    if (is_eof())
+    {
+        lexeme = "";
+        token_start_row = 0;
+        token_start_col = 0;
+        token_end_row = 0;
+        token_end_col = 0;
+        return;
+    }
+
     switch (source[ptr])
     {
         case '+':
@@ -220,15 +229,37 @@ bool MzLexer::Lexer::next_token()
                 SET_ONE_CHAR(TokenType::Dot);
             }
             break;
+        case '"':
+            handle_string();
+            break;
+        case '\'':
+            if (peek(1) == '\'')
+            {
+                token = TokenType::Char;
+                token_start_row = row;
+                token_start_col = col;
+                advance(2);
+                lexeme = source.substr(ptr-2, 3);
+                token_start_row = row;
+                token_start_col = col;
+                advance();
+            }
+            else
+            {
+                advance(2);
+                set_error();
+                return;
+            }
+            break;
         default:
             if (is_number())
             {
                 handle_number();
                 break;
             }
-            else if (is_alpha() || source[ptr] == '"' || source[ptr] == '\'') {
-                assert(false && "Handle alpha");
-                return true;
+            else if (is_alpha())
+            {
+                handle_identifier();
                 break;
             }
             else
@@ -240,18 +271,18 @@ bool MzLexer::Lexer::next_token()
             // return false;
             // break;
     }
-
-    return true;
 }
 
-void MzLexer::Lexer::handle_number() {
+void MzLexer::Lexer::handle_number()
+{
     uint start_ptr = ptr;
     token_start_row = row;
     token_start_col = col;
     token = TokenType::WholeNumber;
     advance();
 
-    while(!is_eof() && is_number()) {
+    while(!is_eof() && is_number())
+    {
         if (peek() == '.') {
             token = TokenType::Decimal;
             advance();
@@ -264,30 +295,61 @@ void MzLexer::Lexer::handle_number() {
     token_end_col = col;
 }
 
-void MzLexer::Lexer::handle_string() {
+void MzLexer::Lexer::handle_identifier()
+{
+    uint start_ptr = ptr;
+    token_start_row = row;
+    token_start_col = col;
+    token = TokenType::Identifier;
+    advance();
+    while (!is_eof() && (is_alpha() || source[ptr] == '_'))
+    {
+        advance();
+    }
+
+    lexeme = source.substr(start_ptr, ptr-start_ptr);
+    token_end_row = row;
+    token_end_col = col;
 }
 
-bool MzLexer::Lexer::is_token_string() {
+void MzLexer::Lexer::handle_string()
+{
+    char st = source[ptr];
+    uint start_ptr = ptr;
+    token_start_row = row;
+    token_start_col = col;
+    token = TokenType::String;
+    advance();
+    while (!is_eof() && source[ptr] != st)
+    {
+        if (source[ptr] == '\n')
+        {
+            set_error();
+            advance();
+            return;
+        }
+        advance();
+    }
+    advance();
+
+    lexeme = source.substr(start_ptr, ptr-start_ptr);
+    token_start_row = row;
+    token_start_col = col;
+}
+
+bool MzLexer::Lexer::is_token_string()
+{
     return token == TokenType::String || token == TokenType::MultiLineString ||
         token == TokenType::RString || token == TokenType::FString;
 }
 
 void MzLexer::Lexer::print_current_token(std::ostream& fd)
 {
+    if (lexeme.length() == 0) return;
     int w = 10;
     std::stringstream ss;
 
-    std::string gr = "";
-    if (is_token_string())
-    {
-        gr = "\"";
-    }
-    else if (token == TokenType::Char)
-    {
-        gr = "'";
-    }
-
-    ss << tokentype_to_string(token) << "(" << gr << lexeme << gr << ")";
+    ss << tokentype_to_string(token) << "(" << lexeme << ")";
 
     fd <<  "TokenType: " << std::setw(w*2) << std::left << ss.str() <<
         " Token Start Row: " << std::setw(w) << std::left << token_start_row <<

@@ -140,7 +140,7 @@ void MzLexer::Lexer::next_token()
         case '/':
             if (peek() == '/')
             {
-                SET_TWO_CHAR(TokenType::Comment, "//");
+                handle_comment();
             }
             else {
                 SET_ONE_CHAR(TokenType::Divide);
@@ -337,10 +337,22 @@ void MzLexer::Lexer::handle_string()
     token_start_col = col;
 }
 
-bool MzLexer::Lexer::is_token_string()
+void MzLexer::Lexer::handle_comment()
 {
-    return token == TokenType::String || token == TokenType::MultiLineString ||
-        token == TokenType::RString || token == TokenType::FString;
+    uint start_ptr = ptr;
+    token_start_row = row;
+    token_start_col = col;
+    advance(2);
+    token = TokenType::Comment;
+    advance();
+    while (!is_eof() && source[ptr] != '\n')
+    {
+        advance();
+    }
+
+    lexeme = source.substr(start_ptr, ptr-start_ptr);
+    token_start_row = row;
+    token_start_col = col;
 }
 
 void MzLexer::Lexer::print_current_token(std::ostream& fd)

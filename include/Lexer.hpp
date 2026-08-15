@@ -41,7 +41,6 @@ private:
     bool is_alpha();
     bool is_number();
     bool is_whitespace(char);
-    bool is_token_string();
 
     char peek(uint offset = 0);
     void advance(uint amount = 1);
@@ -51,6 +50,7 @@ private:
     void handle_number();
     void handle_string();
     void handle_identifier();
+    void handle_comment();
 };
 }
 #endif // __LEXERHPP__

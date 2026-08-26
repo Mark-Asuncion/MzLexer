@@ -341,6 +341,10 @@ void MzLexer::Lexer::handle_string()
     advance();
     while (!is_eof() && source[ptr] != st)
     {
+        if (source[ptr] == '\\')
+        {
+            advance();
+        }
         if (source[ptr] == '\n')
         {
             set_error();
